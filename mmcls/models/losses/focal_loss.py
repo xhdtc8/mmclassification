@@ -12,12 +12,12 @@ def sigmoid_focal_loss(pred,
                        alpha=0.25,
                        reduction='mean',
                        avg_factor=None):
-    r"""Sigmoid focal loss.
+    """Sigmoid focal loss.
 
     Args:
-        pred (torch.Tensor): The prediction with shape (N, \*).
+        pred (torch.Tensor): The prediction with shape (N, *).
         target (torch.Tensor): The ground truth label of the prediction with
-            shape (N, \*).
+            shape (N, *).
         weight (torch.Tensor, optional): Sample-wise loss weight with shape
             (N, ). Dafaults to None.
         gamma (float): The gamma for calculating the modulating factor.
@@ -82,16 +82,16 @@ class FocalLoss(nn.Module):
                 weight=None,
                 avg_factor=None,
                 reduction_override=None):
-        r"""Sigmoid focal loss.
+        """Sigmoid focal loss.
 
         Args:
-            pred (torch.Tensor): The prediction with shape (N, \*).
+            pred (torch.Tensor): The prediction with shape (N, *).
             target (torch.Tensor): The ground truth label of the prediction
-                with shape (N, \*).
+                with shape (N, *).
             weight (torch.Tensor, optional): Sample-wise loss weight with shape
-                (N, \*). Dafaults to None.
+            (N, *). Dafaults to None.
             avg_factor (int, optional): Average factor that is used to average
-                the loss. Defaults to None.
+            the loss. Defaults to None.
             reduction_override (str, optional): The method used to reduce the
                 loss into a scalar. Options are "none", "mean" and "sum".
                 Defaults to None.
@@ -99,6 +99,7 @@ class FocalLoss(nn.Module):
         Returns:
             torch.Tensor: Loss.
         """
+        pred=torch.reshape(pred,target.shape)
         assert reduction_override in (None, 'none', 'mean', 'sum')
         reduction = (
             reduction_override if reduction_override else self.reduction)

@@ -1,0 +1,1 @@
+python tools/deployment/mymo.py --input_model models/onnx_model/anfang.onnx --input_shape [1,3,224,224]  --data_type FP16 -o models/openvino_model
