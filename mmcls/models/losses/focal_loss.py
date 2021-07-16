@@ -113,38 +113,38 @@ class FocalLoss(nn.Module):
             avg_factor=avg_factor)
         return loss_cls
 
-# todo 集成多分类的focalloss    
-class FocalLoss(nn.Module):
-    def __init__(self, opt):
-        super(FocalLoss, self).__init__()
-        self.weights = opt.LOSS.FocalLoss.weights
-        self.gamma = opt.LOSS.FocalLoss.gamma
-        cls_weights = opt.LOSS.FocalLoss.cls_weights
-        assert len(cls_weights) == opt.DATASET.NUM_CLASSES
-        self.cls_weights = torch.Tensor(cls_weights).cuda()
-
-
-    def forward(self, inputs, labels, **kwargs):
-        inputs = inputs["logits"]
-        inputs = to_list(inputs)
-
-        losses = []
-        for input in inputs:
-            """
-            cal culates loss
-            logits: batch_size * seq_length
-            labels: batch_size
-            """
-
-            # transpose labels into labels onehot
-            new_label = labels.unsqueeze(1)
-            label_onehot = torch.zeros([input.shape[0], input.shape[1]]).cuda().scatter_(1, new_label, 1)
-            alpha = label_onehot * self.cls_weights.expand(input.shape[0], input.shape[1])
-
-            # calculate log
-            log_p = F.log_softmax(input, dim=-1)
-            pt = alpha * log_p
-            sub_pt = 1 - pt
-            fl = -(sub_pt) ** self.gamma * log_p
-            losses.append(fl.mean())
-        return sum(losses) / len(losses) * self.weights
+# # todo 集成多分类的focalloss
+# class FocalLoss(nn.Module):
+#     def __init__(self, opt):
+#         super(FocalLoss, self).__init__()
+#         self.weights = opt.LOSS.FocalLoss.weights
+#         self.gamma = opt.LOSS.FocalLoss.gamma
+#         cls_weights = opt.LOSS.FocalLoss.cls_weights
+#         assert len(cls_weights) == opt.DATASET.NUM_CLASSES
+#         self.cls_weights = torch.Tensor(cls_weights).cuda()
+#
+#
+#     def forward(self, inputs, labels, **kwargs):
+#         inputs = inputs["logits"]
+#         inputs = to_list(inputs)
+#
+#         losses = []
+#         for input in inputs:
+#             """
+#             cal culates loss
+#             logits: batch_size * seq_length
+#             labels: batch_size
+#             """
+#
+#             # transpose labels into labels onehot
+#             new_label = labels.unsqueeze(1)
+#             label_onehot = torch.zeros([input.shape[0], input.shape[1]]).cuda().scatter_(1, new_label, 1)
+#             alpha = label_onehot * self.cls_weights.expand(input.shape[0], input.shape[1])
+#
+#             # calculate log
+#             log_p = F.log_softmax(input, dim=-1)
+#             pt = alpha * log_p
+#             sub_pt = 1 - pt
+#             fl = -(sub_pt) ** self.gamma * log_p
+#             losses.append(fl.mean())
+#         return sum(losses) / len(losses) * self.weights
