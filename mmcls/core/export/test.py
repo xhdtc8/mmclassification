@@ -60,6 +60,41 @@ class ONNXRuntimeClassifier(BaseClassifier):
         return list(results)
 
 
+from openvino.inference_engine import IECore
+
+
+class OpenvinoClassifier(BaseClassifier):
+    """Wrapper for classifier's inference with ONNXRuntime."""
+
+    def __init__(self, xml_file, class_names, device_id):
+        super(OpenvinoClassifier, self).__init__()
+        ie = IECore()
+        self.net = ie.read_network(xml_file)
+        self.input_blob = self.net.input_info['input'].input_data.name  # 输入根据实际修改
+        self.net.batch_size = 1
+        self.exec_net = ie.load_network(network=self.net, device_name='CPU')
+
+        self.CLASSES = class_names
+        self.device_id = device_id
+        self.output_names = ['probs']  # 输出根据实际修改
+
+    def simple_test(self, img, img_metas, **kwargs):
+        raise NotImplementedError('This method is not implemented.')
+
+    def extract_feat(self, imgs):
+        raise NotImplementedError('This method is not implemented.')
+
+    def forward_train(self, imgs, **kwargs):
+        raise NotImplementedError('This method is not implemented.')
+
+    def forward_test(self, imgs, img_metas, **kwargs):
+        imgs = imgs.cpu()
+        res = self.exec_net.infer(inputs={self.input_blob: imgs})
+        results = []
+        for out in self.output_names:
+            results.append(res[out])
+        return list(results)
+
 class TensorRTClassifier(BaseClassifier):
 
     def __init__(self, trt_file, class_names, device_id):

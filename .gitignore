@@ -112,6 +112,9 @@ data
 *.pkl.json
 *.log.json
 work_dirs/
+models/
 
 # Pytorch
 *.pth
+*.onnx
+*.pt

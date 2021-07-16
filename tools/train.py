@@ -18,28 +18,28 @@ from mmcls.utils import collect_env, get_root_logger
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a model')
-    parser.add_argument('config', help='train config file path')
-    parser.add_argument('--work-dir', help='the dir to save logs and models')
+    parser.add_argument('config', help='train config file path')               #！！！！！！！！！cfg文件路径：必须
+    parser.add_argument('--work-dir', help='the dir to save logs and models')  #！！！！！！！！！工作目录：重要
     parser.add_argument(
-        '--resume-from', help='the checkpoint file to resume from')
+        '--resume-from', help='the checkpoint file to resume from')            #######恢复训练：用得到
     parser.add_argument(
         '--no-validate',
         action='store_true',
         help='whether not to evaluate the checkpoint during training')
     group_gpus = parser.add_mutually_exclusive_group()
-    group_gpus.add_argument('--device', help='device used for training')
+    group_gpus.add_argument('--device', help='device used for training')       
     group_gpus.add_argument(
         '--gpus',
         type=int,
         help='number of gpus to use '
-        '(only applicable to non-distributed training)')
+        '(only applicable to non-distributed training)')                        
     group_gpus.add_argument(
         '--gpu-ids',
         type=int,
         nargs='+',
         help='ids of gpus to use '
-        '(only applicable to non-distributed training)')
-    parser.add_argument('--seed', type=int, default=None, help='random seed')
+        '(only applicable to non-distributed training)')                        #######多卡：重要
+    parser.add_argument('--seed', type=int, default=None, help='random seed')   #######随机数种子：用得到
     parser.add_argument(
         '--deterministic',
         action='store_true',
@@ -125,10 +125,9 @@ def main():
     cfg.seed = args.seed
     meta['seed'] = args.seed
 
-    model = build_classifier(cfg.model)
-    model.init_weights()
+    model = build_classifier(cfg.model)                                          #！！！！！！！！ 整个model实例搭建
 
-    datasets = [build_dataset(cfg.data.train)]
+    datasets = [build_dataset(cfg.data.train)]                                   #！！！！！！！！数据集搭建
     if len(cfg.workflow) == 2:
         val_dataset = copy.deepcopy(cfg.data.val)
         val_dataset.pipeline = cfg.data.train.pipeline
