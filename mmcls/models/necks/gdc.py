@@ -20,7 +20,7 @@ class GlobalDepthwiseConv(nn.Module):
         super(GlobalDepthwiseConv, self).__init__()
         self.in_channel=512 * widen_factor
         self.conv_6_dw = Linear_block(self.in_channel, self.in_channel, groups=self.in_channel, kernel=kernel, stride=(1, 1), padding=(0, 0))
-        self.linear = nn.Conv2d(self.in_channel, out_channels=embedding_size, kernel_size=1, groups=1, stride=1, padding=(0,0), bias=False)  # 映射到embsize，若embsize和gdc出来一致，可省略
+        self.linear = nn.Conv2d(self.in_channel, out_channels=embedding_size, kernel_size=(1,1), groups=1, stride=(1,1), padding=(0,0), bias=False)  # 映射到embsize，若embsize和gdc出来一致，可省略
         self.bn = nn.BatchNorm2d(embedding_size)  
         self.flatten = nn.Flatten()
 

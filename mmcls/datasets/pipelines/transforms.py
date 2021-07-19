@@ -6,6 +6,7 @@ from typing import Sequence
 
 import mmcv
 import numpy as np
+import cv2
 
 from ..builder import PIPELINES
 from .compose import Compose
@@ -680,6 +681,82 @@ class Resize(object):
                     backend=self.backend)
                 results[key] = img
                 results['img_shape'] = img.shape
+
+    def __call__(self, results):
+        self._resize_img(results)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(size={self.size}, '
+        repr_str += f'interpolation={self.interpolation})'
+        return repr_str
+
+
+@PIPELINES.register_module()
+class ResizePadding(object):
+    """Resize and padding images.
+
+    Args:
+        size (int | tuple): Images scales for resizing (h, w).
+            When size is int, the default behavior is to resize an image
+            to (size, size). When size is tuple and the second value is -1,
+            the short edge of an image is resized to its first value.
+            For example, when size is 224, the image is resized to 224x224.
+        interpolation (str): Interpolation method, accepted values are
+            "nearest", "bilinear", "bicubic", "area", "lanczos".
+            More details can be found in `mmcv.image.geometric`.
+        backend (str): The image resize backend type, accpeted values are
+            `cv2` and `pillow`. Default: `cv2`.
+    """
+
+    def __init__(self, size, interpolation='bilinear', backend='cv2', color=(114,114,114)):
+        assert isinstance(size, int) or (isinstance(size, tuple)
+                                         and len(size) == 2)
+        self.resize_w_short_side = False
+        if isinstance(size, int):
+            assert size > 0
+            size = (size, size)
+        else:
+            assert size[0] > 0 and size[1] > 0
+        assert interpolation in ('nearest', 'bilinear', 'bicubic', 'area',
+                                 'lanczos')
+        if backend not in ['cv2', 'pillow']:
+            raise ValueError(f'backend: {backend} is not supported for resize.'
+                             'Supported backends are "cv2", "pillow"')
+
+        self.size = size
+        self.interpolation = interpolation
+        self.backend = backend
+        self.color=color
+
+    def _resize_img(self, results):
+        for key in results.get('img_fields', ['img']):
+            img = results[key]
+            shape = img.shape[:2]  # current shape [height, width]
+            new_shape = self.size
+
+            # Scale ratio (new / old)
+            r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+
+            # Compute padding
+            new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+            dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
+
+            dw /= 2  # divide padding into 2 sides
+            dh /= 2
+
+            img = mmcv.imresize(
+                img,
+                size=new_unpad,
+                interpolation=self.interpolation,
+                return_scale=False,
+                backend=self.backend)
+            top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+            left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.color)  # add border
+            results[key] = img
+            results['img_shape'] = img.shape
 
     def __call__(self, results):
         self._resize_img(results)
